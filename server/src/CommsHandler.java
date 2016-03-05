@@ -1,5 +1,3 @@
-package edu.csc660.prog1.server;
-
 import java.net.Socket;
 
 public class CommsHandler implements Runnable {
