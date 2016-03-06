@@ -8,7 +8,7 @@ public class Client {
 	public static void main(String[] args) {
 		ExecutorService pool = Executors.newFixedThreadPool(NUMBER_OF_NODES);
 		for(int i = 0; i < NUMBER_OF_NODES; i++){
-			pool.execute(new Node());
+			pool.execute(new Node(i));
 		}
 	}
 }
