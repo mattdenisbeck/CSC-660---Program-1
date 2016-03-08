@@ -1,50 +1,78 @@
 import java.io.*;
 import java.net.Socket;
 
+/**
+ * Created by Rasheed on 3/6/16.
+ */
 public class Node implements Runnable {
-	private static final String HOST_NAME = "localhost";
-	private static final int PORT_NUMBER = 4321;
+
 	private int nodeId;
+	private static final String PATH = System.getenv("PROJECT1_FILES");
+	private int lamportLogicalClock;
 
 	public Node(int nodeId) {
 		this.nodeId = nodeId;
+	}
+
+	public static void main(String[] args) {
+
+		for (int i = 0; i < 10; i++) {
+			try {
+				Thread.sleep(2000);
+				Thread thread = new Thread(new Node(i));
+				thread.start();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 
 	}
 
 	@Override
 	public void run() {
-		Socket nodeSocket;
-		PrintWriter out;
-		String line = null;
-		
-		try {
-			nodeSocket = new Socket(HOST_NAME, PORT_NUMBER);
-			System.out.println("Node number " + nodeId + " is now connected.");
-			out = new PrintWriter(nodeSocket.getOutputStream(), true);
+		String line;
+		//had problems getting environment variable to work, so I'm leaving it till later.
+		String fileName = "/Users/Rasheed/Google Drive/NKU/CSC660/CSC-660---Program-1/client/input-files/" + nodeId + "input.txt";
+		//System.out.println(PATH);
+//        String fileName = PATH + nodeId + "input.txt";
+		try (
+				Socket nodeSocket = new Socket("localhost", 4499);
+				PrintWriter out = new PrintWriter(nodeSocket.getOutputStream(), true);
+				BufferedReader in = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
+				BufferedReader br = new BufferedReader(new FileReader(fileName))
+		) {
 
-			String nodeInputFile = nodeId + "input.txt";
-			/*I could not get the relative path to the text files to work. Please update the exact path to the local path of your file names.*/
-			BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Gaurav\\Desktop\\CSC 660\\CSC-660---Program-1\\client\\input-files\\" + nodeInputFile));
-			//BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\Gaurav\\Desktop\\CSC 660\\CSC-660---Program-1\\client\\input-files\\0input.txt"));
-
+			out.println("node" + nodeId);
+			Thread.sleep(30000);
 			while ((line = br.readLine()) != null) {
-				//System.out.println(line);
-				if (line.contains("\"")) { //this is the message line
-					int receivingNode = Character.getNumericValue(line.charAt(0)); //gives us the nodeId of the receiving node.
-					out.println(line);
+
+
+				String[] lineAry = line.split("\"");
+
+				if (lineAry.length > 1) {
+					//message found
+					int destinationNode = Integer.parseInt(lineAry[0].trim());
+					String message = lineAry[1];
+					out.println(destinationNode+":"+message+":"+lamportLogicalClock);
+					System.out.println(in.readLine());
 
 				}
 				else {
-					Thread.sleep(Integer.parseInt(line));
+					//no message
+					int number = Integer.parseInt(line.trim());
+					lamportLogicalClock += number;
+					System.out.println("Simulating sequential instructions for " + number);
+					Thread.sleep(number);
 				}
+
 			}
 
+		} catch (IOException e) {
+			e.printStackTrace();
+
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-		catch (IOException e) {
-			System.out.println("IOException was caused in the run() method of the Node class.");
-		}
-		catch (InterruptedException e) {
-			System.out.println("InterruptedException caused from the Thread.sleep execution");
-		}
+
 	}
 }

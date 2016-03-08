@@ -1,44 +1,46 @@
+import sun.net.NetworkServer;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
+/**
+ * Created by Rasheed on 3/5/16.
+ */
 public class CentralServer implements Runnable {
-	private final ServerSocket serverSocket;  // the server socket
-	private final ExecutorService pool;   // ExecutorService object
-	private int activeConnections;		//count active clients
+	private final ServerSocket serverSocket;
+	private final ExecutorService pool;
 
 	public CentralServer(int port, int poolSize) throws IOException {
-		serverSocket = new ServerSocket(port);  // listen at given port
-		pool = Executors.newFixedThreadPool(poolSize);  // create N threads in pool
-		activeConnections = 0; 							
-	}
+		serverSocket = new ServerSocket(port);
+		pool = Executors.newFixedThreadPool(poolSize);
 
+	}
 	public static void main(String[] args) {
+
 		try {
-			System.out.println("Starting server...");
-			Thread server = new Thread(new CentralServer(4321, 10));
-			server.start();
-		} catch (IOException e) {
-			System.out.println("IOException was caused in the main method of the CentralServer class.");
+
+			CentralServer centralServer = new CentralServer(4499, 10);
+			Thread thread = new Thread(centralServer);
+			thread.start();
+
+			System.out.println("Server started");
+
+		}catch(IOException e) {
+			System.out.println("Could not start server");
+			e.printStackTrace();
 		}
 	}
+	public void run() {
 
-	public void run() {         // run the service 
 		try {
 			while (true) {
-				//System.out.println("Accepting connections...");
-				pool.execute(new CommsHandler(serverSocket.accept()));  // create worker thread
-				incrementConnections();
+				//todo:consider adding DOS attack protection
+				pool.execute(new CommsHandler(serverSocket.accept()));
 			}
-		} catch (IOException ex) {
-			pool.shutdown();        // shutdown the ExecutorService thread pool
+		}catch(IOException ex) {
+			pool.shutdown();
 		}
 	}
-	
-	public synchronized void incrementConnections(){
-		activeConnections++;
-	}
-
 }
