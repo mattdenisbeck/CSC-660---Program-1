@@ -1,3 +1,5 @@
+package src;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,49 +16,68 @@ public class CommsHandler implements Runnable {
 	private final Socket socket;
 	private BufferedReader in;
 	private PrintWriter out;
-	private String destinationNode;
+	private int sourceNode, destinationNode, localtime;
+	private String message;
 
 	//Map to store all client sockets
-	private static Map<String, Socket> nodeSockets = new HashMap<String, Socket>();
+	private static Map<Integer, Socket> nodeSockets = new HashMap<Integer, Socket>();
+	private static int activeConnections = 0;
 
 	public CommsHandler(Socket socket) {
 		this.socket = socket;
 	}
 
 	public void run() {
-		// while(true) {
-//todo: change to try with resources
 		try {
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-			String node = in.readLine(); //read initial message from client containing node name to add to sockets map.
-			System.out.println(node);
+			Integer node = Integer.parseInt(in.readLine()); //read initial message from client containing node name to add to sockets map.
+			System.out.println(node + " connected");
 			nodeSockets.put(node, this.socket); //add socket with name to map
+			incrementConnections();
+			System.out.println("Active Connections(after increment) = " + activeConnections);
 
 			String inputLine;
 			while((inputLine = in.readLine()) != null) {
-				System.out.println(inputLine);
-
-				//todo:lines from client need to be parsed better than this
-				//todo:include nodeid in message
+				System.out.println("SERVER received: " + inputLine);
 
 				/**
 				 * message from client is in the following format:
-				 * DESTINATION:MESSAGE:LOCALTIME
+				 * SOURCE:DESTINATION:MESSAGE:LOCALTIME
 				 */
-
-				destinationNode = "node" + inputLine.split(":")[0];
-				System.out.println(destinationNode);
-
-				out = new PrintWriter(nodeSockets.get(destinationNode).getOutputStream(), true);
-				out.println(inputLine); //sending message to destination
+				sourceNode = Integer.parseInt(inputLine.split(":")[0]); 
+				destinationNode = Integer.parseInt(inputLine.split(":")[1]);
+				message = inputLine.split(":")[2];
+				localtime = Integer.parseInt(inputLine.split(":")[3]);
+				
+				if (message.equals("FINISHED")){
+					decrementConnections();
+					System.out.println("Active Connections(after decrement) = " + activeConnections);
+					
+					if(activeConnections == 0){
+						for(int i =0; i < 10; i++){
+							out = new PrintWriter(nodeSockets.get(i).getOutputStream(), true);
+							out.println("TERMINATE:" + -1 + ":" + localtime); //sending terminate message to nodes
+						}
+					}
+				}
+				else {
+					out = new PrintWriter(nodeSockets.get(destinationNode).getOutputStream(), true);
+					out.println(message + ":" + sourceNode + ":" + localtime); //sending message to destination
+				}
 			}
 		}catch (IOException e) {
 			System.out.println("error receiving message");
 			e.printStackTrace();
-			System.out.println(e);
 		}
-//            }
+	}
+
+	private static synchronized void decrementConnections() {
+		activeConnections--;
+	}
+
+	private static synchronized void incrementConnections() {
+		activeConnections++;
 	}
 
 }
