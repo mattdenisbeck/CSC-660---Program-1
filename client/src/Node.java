@@ -46,26 +46,38 @@ public class Node implements Runnable {
 			Thread.sleep(30000);
 			while ((line = br.readLine()) != null) {
 
-
 				String[] lineAry = line.split("\"");
 
 				if (lineAry.length > 1) {
 					//message found
 					int destinationNode = Integer.parseInt(lineAry[0].trim());
 					String message = lineAry[1];
-					out.println(destinationNode+":"+message+":"+lamportLogicalClock);
-					System.out.println(in.readLine());
+					System.out.println("PROCESS #" + nodeId +" Sending message " + message + " to PROCESS #" + destinationNode + " Local time = " + this.lamportLogicalClock);
+					out.println(destinationNode+":"+message+":"+this.lamportLogicalClock);
+					//System.out.println(in.readLine());
 
 				}
 				else {
 					//no message
 					int number = Integer.parseInt(line.trim());
-					lamportLogicalClock += number;
-					System.out.println("Simulating sequential instructions for " + number);
+					this.lamportLogicalClock += number;
+					System.out.println("PROCESS #" + nodeId + " Sleeping for " + number * 1000 + " seconds Localtime = " + this.lamportLogicalClock);
 					Thread.sleep(number);
 				}
-
 			}
+
+			String incommingMessage;
+			while ((incommingMessage = in.readLine()) != null ) {
+//				System.out.println(incommingMessage);
+//				System.out.println(incommingMessage.split(":")[2]);
+				this.lamportLogicalClock += Math.max(Integer.parseInt(incommingMessage.split(":")[2]) + 1, this.lamportLogicalClock + 1);
+				String sourceNode = "";
+				System.out.println("RECEIVED MESSAGE: " + incommingMessage);
+//				System.out.println("PROCESS #" + nodeId + " Sleeping for " + number * 1000 + " seconds Localtime = " + this.lamportLogicalClock);
+//				System.out.println("Clock: " + lamportLogicalClock);
+			}
+
+//			System.out.println("Clock: " + lamportLogicalClock);
 
 		} catch (IOException e) {
 			e.printStackTrace();

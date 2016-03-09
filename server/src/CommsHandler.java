@@ -38,6 +38,7 @@ public class CommsHandler implements Runnable {
 				System.out.println(inputLine);
 
 				//todo:lines from client need to be parsed better than this
+				//todo:include nodeid in message
 
 				/**
 				 * message from client is in the following format:
