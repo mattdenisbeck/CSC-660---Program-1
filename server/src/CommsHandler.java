@@ -10,6 +10,8 @@ import java.util.Map;
 
 /**
  * Created by Rasheed on 3/5/16.
+ * Edited by Matthew Beck on 3/9/16
+ * This class handles communications to/from the client nodes
  */
 public class CommsHandler implements Runnable {
 
@@ -45,15 +47,18 @@ public class CommsHandler implements Runnable {
 				 * message from client is in the following format:
 				 * SOURCE:DESTINATION:MESSAGE:LOCALTIME
 				 */
+				//parse message from nodes
 				sourceNode = Integer.parseInt(inputLine.split(":")[0]); 
 				destinationNode = Integer.parseInt(inputLine.split(":")[1]);
 				message = inputLine.split(":")[2];
 				localtime = Integer.parseInt(inputLine.split(":")[3]);
 				
+				//a "FINISHED" message means the client has no more instructions to carry out
 				if (message.equals("FINISHED")){
 					decrementConnections();
 					System.out.println("Active Connections(after decrement) = " + activeConnections);
 					
+					//if no more active connections, send message telling all clients to terminate
 					if(activeConnections == 0){
 						for(int i =0; i < 10; i++){
 							out = new PrintWriter(nodeSockets.get(i).getOutputStream(), true);

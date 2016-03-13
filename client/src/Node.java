@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by Rasheed on 3/6/16.
  * Changes by Matthew Beck 3/9/16
+ * This class represents the client nodes and handles sending messages to the server.
  */
 public class Node implements Runnable {
 
@@ -43,13 +44,14 @@ public class Node implements Runnable {
 				BufferedReader br = new BufferedReader(new FileReader(fileName))
 		) {
 			//start message handler thread for reading incoming messages
-			Thread handler = new Thread(new MessageHandler(in, nodeId));
+			Thread handler = new Thread(new MessageHandler(in, nodeId, lamportLogicalClock));
 			handler.start();
 
 			//send initial identifier message to Server
 			out.println(nodeId);
 			Thread.sleep(2000);  //pause for other nodes to connect
 			
+			//read through input file
 			while ((line = br.readLine()) != null) {
 
 				String[] lineAry = line.split("\"");
