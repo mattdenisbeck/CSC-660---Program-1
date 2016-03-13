@@ -1,9 +1,9 @@
 2000
-7 "message from process 2 to process"
+7 "message from process 2 to process 7"
 1000
-8 "message from process 2 to process"
-7 "yup another message from 0 to"
+8 "message from process 2 to process 8"
+7 "yup another message from 2 to 7"
 3000
-7 "last message to from 2 to"
+7 "last message to from 2 to 7"
 5000
-3 "message from process 2 to process"
+3 "message from process 2 to process 3"

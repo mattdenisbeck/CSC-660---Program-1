@@ -1,44 +1,35 @@
+package src;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
-public class CentralServer implements Runnable {
-	private final ServerSocket serverSocket;  // the server socket
-	private final ExecutorService pool;   // ExecutorService object
-	private int activeConnections;		//count active clients
+/**
+ * Created by Rasheed on 3/5/16.
+ * Edited by Matthew Beck on 3/9/16
+ */
+public class CentralServer {
+	private final ServerSocket serverSocket;
+	private final ExecutorService pool;
 
 	public CentralServer(int port, int poolSize) throws IOException {
-		serverSocket = new ServerSocket(port);  // listen at given port
-		pool = Executors.newFixedThreadPool(poolSize);  // create N threads in pool
-		activeConnections = 0; 							
-	}
-
-	public static void main(String[] args) {
-		try {
-			System.out.println("Starting server...");
-			Thread server = new Thread(new CentralServer(4321, 10));
-			server.start();
-		} catch (IOException e) {
-			System.out.println("IOException was caused in the main method of the CentralServer class.");
-		}
-	}
-
-	public void run() {         // run the service 
-		try {
-			while (true) {
-				//System.out.println("Accepting connections...");
-				pool.execute(new CommsHandler(serverSocket.accept()));  // create worker thread
-				incrementConnections();
-			}
-		} catch (IOException ex) {
-			pool.shutdown();        // shutdown the ExecutorService thread pool
-		}
+		serverSocket = new ServerSocket(port);
+		pool = Executors.newFixedThreadPool(poolSize);
 	}
 	
-	public synchronized void incrementConnections(){
-		activeConnections++;
-	}
+	public static void main(String[] args) {
+		CentralServer centralServer;
+		try {
+			centralServer = new CentralServer(4499, 10);
+			System.out.println("Server started");
+			for(int i = 0; i < 10; i++){
+				centralServer.pool.execute(new CommsHandler(centralServer.serverSocket.accept()));
+			}
+			centralServer.pool.shutdown(); //shutdown pool after all messages are delivered
 
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+	}
 }
