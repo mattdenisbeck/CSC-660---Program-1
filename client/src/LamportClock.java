@@ -17,11 +17,11 @@ public class LamportClock {
 		setValue(Math.max(sourceClock + 1, getValue() + 1));
 	}
 
-	public synchronized int getValue() {
+	public int getValue() {
 		return value;
 	}
 
-	public synchronized void setValue(int value) {
+	public void setValue(int value) {
 		this.value = value;
 	}
 	
